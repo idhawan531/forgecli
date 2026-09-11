@@ -40,6 +40,90 @@ pip install git+https://github.com/idhawan531/forgecli
 | `forgecli generate "a react dashboard for tracking habits"` | `vite_react` |
 | `forgecli generate "a terminal pomodoro timer"` | `rich_tui` |
 
+## Usage
+
+The command surface below is generated from the actual `--help` output, so it
+cannot drift from the code.
+
+### `forgecli --version` / `-V`
+
+Prints the installed version and exits.
+
+```bash
+$ forgecli --version
+forgecli 0.1.0
+```
+
+### `forgecli generate DESCRIPTION [OPTIONS]`
+
+Scaffolds a new project from a short description.
+
+```text
+Usage: forgecli generate [OPTIONS] DESCRIPTION
+
+ Generate project artifacts from a short DESCRIPTION.
+
+╭─ Arguments ──────────────────────────────────────────────────────────────────────────────────────╮
+│ *    description      TEXT  A short description of the project you want to scaffold. [required]  │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --output-dir  -o      TEXT  Directory in which to create the new project folder. [default: .]    │
+│ --name        -n      TEXT  Optional explicit project folder name.                               │
+│ --template    -t      TEXT  Template key to use. If omitted, forgecli auto-selects one from the  │
+│                             description.                                                         │
+│ --run-tests                 Run template tests after generation when a test command is defined.  │
+│ --help                      Show this message and exit.                                          │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
+
+```bash
+forgecli generate "a rest api for short links" -o ~/code --name links-api --template fastapi_api --run-tests
+```
+
+`--run-tests` installs the generated project's own dependencies (into its own
+isolated `.venv` for Python templates, or via `npm install` for the React
+template) before running its test command — it never touches ForgeCLI's own
+environment.
+
+### `forgecli templates`
+
+Lists every registered template with its run command.
+
+```text
+Usage: forgecli templates [OPTIONS]
+
+ List available templates and run commands.
+
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --help          Show this message and exit.                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
+
+```bash
+forgecli templates
+```
+
+### `forgecli demo [OPTIONS]`
+
+Generates one sample project per registered template — a quick way to see
+everything ForgeCLI ships without writing a description.
+
+```text
+Usage: forgecli demo [OPTIONS]
+
+ Generate one sample project per registered template for a quick look around.
+
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --output-dir  -o      TEXT  Directory in which to generate demo projects. Defaults to a fresh    │
+│                             temp directory.                                                      │
+│ --help                      Show this message and exit.                                          │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
+
+```bash
+forgecli demo
+```
+
 ## Templates
 
 | Key | What you get | Run command |

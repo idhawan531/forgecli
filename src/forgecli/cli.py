@@ -6,7 +6,9 @@ import os
 import shlex
 import subprocess
 import sys
+import tempfile
 import time
+from importlib import metadata
 from pathlib import Path
 from threading import Thread
 from typing import Optional
@@ -18,6 +20,7 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.syntax import Syntax
 from rich.table import Table
 
+from forgecli import __version__ as _fallback_version
 from forgecli.generator import scaffold_project
 from forgecli.logger import log_prompt
 from forgecli.templates import TEMPLATES, list_templates, select_template
@@ -30,8 +33,31 @@ app = typer.Typer(
 console = Console()
 
 
+def _resolve_version() -> str:
+    """Return the installed package version, falling back to the source version."""
+    try:
+        return metadata.version("forgecli")
+    except metadata.PackageNotFoundError:
+        return _fallback_version
+
+
+def _version_callback(value: bool) -> None:
+    if value:
+        console.print(f"forgecli {_resolve_version()}")
+        raise typer.Exit(code=0)
+
+
 @app.callback()
-def main() -> None:
+def main(
+    version: Optional[bool] = typer.Option(
+        None,
+        "--version",
+        "-V",
+        help="Show the forgecli version and exit.",
+        callback=_version_callback,
+        is_eager=True,
+    ),
+) -> None:
     """forgecli: forge new project artifacts from a short description."""
 
 
@@ -319,6 +345,38 @@ def templates_command() -> None:
         table.add_row(template.key, template.title, template.description, template.run_command)
 
     console.print(table)
+
+
+@app.command("demo")
+def demo(
+    output_dir: Optional[str] = typer.Option(
+        None,
+        "--output-dir",
+        "-o",
+        help="Directory in which to generate demo projects. Defaults to a fresh temp directory.",
+    ),
+) -> None:
+    """Generate one sample project per registered template for a quick look around."""
+    demo_dir = output_dir or tempfile.mkdtemp(prefix="forgecli-demo-")
+    Path(demo_dir).mkdir(parents=True, exist_ok=True)
+
+    table = Table(title="Demo Projects", show_header=True, header_style="bold magenta")
+    table.add_column("Template", style="cyan")
+    table.add_column("Project Path", style="green")
+    table.add_column("Files", style="yellow", justify="right")
+
+    for template in list_templates():
+        project_path = scaffold_project(
+            f"a demo {template.title.lower()} project",
+            output_dir=demo_dir,
+            name=template.key,
+            template=template,
+        )
+        file_count = len(_collect_created_files(project_path))
+        table.add_row(template.key, str(project_path), str(file_count))
+
+    console.print(table)
+    console.print(f"\n[bold green]Demo projects written to:[/bold green] {demo_dir}")
 
 
 if __name__ == "__main__":

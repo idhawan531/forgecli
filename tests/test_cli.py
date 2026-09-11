@@ -94,3 +94,23 @@ def test_every_template_preview_file_is_generated(tmp_path: Path) -> None:
             template=template,
         )
         assert (project_path / template.preview_file).is_file()
+
+
+def test_version_flag_exits_zero_and_prints_version() -> None:
+    result = runner.invoke(app, ["--version"])
+    assert result.exit_code == 0
+    assert "forgecli" in result.stdout
+    # A version string should contain at least one digit.
+    assert any(char.isdigit() for char in result.stdout)
+
+
+def test_demo_creates_one_project_per_registered_template(tmp_path: Path) -> None:
+    result = runner.invoke(app, ["demo", "-o", str(tmp_path)])
+    assert result.exit_code == 0
+
+    project_dirs = {entry.name for entry in tmp_path.iterdir() if entry.is_dir()}
+    assert len(project_dirs) == len(TEMPLATES)
+    for template in TEMPLATES.values():
+        expected_dir_name = template.key.replace("_", "-")
+        assert expected_dir_name in project_dirs
+        assert (tmp_path / expected_dir_name / template.preview_file).is_file()
