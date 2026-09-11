@@ -17,7 +17,9 @@ class Template:
     description: str
     keywords: list[str]
     directory: Path
+    preview_file: str
     run_command: str
+    install_command: str
     test_command: Optional[str]
     next_prompts: list[str]
 
@@ -31,7 +33,9 @@ TEMPLATES: dict[str, Template] = {
         description="Python REST API with FastAPI, uvicorn, and pytest starter tests.",
         keywords=["api", "rest", "backend", "endpoint", "fastapi", "service", "server", "crud"],
         directory=_TEMPLATE_ROOT / "fastapi_api",
+        preview_file="main.py",
         run_command="uvicorn main:app --reload",
+        install_command="python -m venv .venv && python -m pip install -r requirements.txt",
         test_command="python -m pytest -q",
         next_prompts=[
             "Add a POST /items endpoint with a Pydantic request model and in-memory storage",
@@ -46,7 +50,9 @@ TEMPLATES: dict[str, Template] = {
         description="Minimal React app scaffolded with Vite and modern front-end defaults.",
         keywords=["web", "react", "frontend", "ui", "page", "site", "dashboard", "app", "browser"],
         directory=_TEMPLATE_ROOT / "vite_react",
+        preview_file="src/App.jsx",
         run_command="npm install && npm run dev",
+        install_command="npm install",
         test_command="npm test",
         next_prompts=[
             "Add React Router with a dashboard and settings page",
@@ -61,7 +67,9 @@ TEMPLATES: dict[str, Template] = {
         description="Python terminal app using Typer and Rich components.",
         keywords=["cli", "terminal", "tui", "command line", "console", "script", "tool"],
         directory=_TEMPLATE_ROOT / "rich_tui",
+        preview_file="main.py",
         run_command="python main.py",
+        install_command="python -m venv .venv && python -m pip install -r requirements.txt",
         test_command="python -m pytest -q",
         next_prompts=[
             "Add interactive prompts to collect user input",

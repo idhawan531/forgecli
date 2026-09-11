@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import shlex
 import subprocess
 import sys
@@ -43,11 +44,30 @@ def _collect_created_files(project_path: Path) -> list[str]:
     return sorted(paths)
 
 
-def _run_template_tests(project_path: Path, test_command: str) -> Optional[bool]:
-    command_parts = shlex.split(test_command)
-    if command_parts and command_parts[0] == "python":
-        command_parts[0] = sys.executable
+def _preview_lexer(preview_path: Path) -> str:
+    """Return the syntax lexer for a generated preview file."""
+    return {
+        ".py": "python",
+        ".jsx": "jsx",
+        ".js": "javascript",
+        ".ts": "typescript",
+    }.get(preview_path.suffix.lower(), "text")
 
+
+def _project_python(project_path: Path) -> Path:
+    """Return the interpreter inside a generated project's local venv."""
+    if os.name == "nt":
+        return project_path / ".venv" / "Scripts" / "python.exe"
+    return project_path / ".venv" / "bin" / "python"
+
+
+def _run_process(
+    project_path: Path,
+    command_parts: list[str],
+    display_command: str,
+    title: str,
+    timeout: int,
+) -> Optional[bool]:
     try:
         process = subprocess.Popen(
             command_parts,
@@ -58,12 +78,13 @@ def _run_template_tests(project_path: Path, test_command: str) -> Optional[bool]
         )
     except FileNotFoundError as exc:
         console.print(
-            f"[yellow]Skipped tests:[/yellow] missing toolchain for '{test_command}': {exc}"
+            f"[yellow]Skipped {title.lower()}:[/yellow] missing toolchain for "
+            f"'{display_command}': {exc}"
         )
         return None
 
     assert process.stdout is not None
-    console.print(Panel.fit(test_command, title="[bold blue]Running tests[/bold blue]", border_style="blue"))
+    console.print(Panel.fit(display_command, title=title, border_style="blue"))
 
     def stream_output() -> None:
         for line in process.stdout:
@@ -72,18 +93,59 @@ def _run_template_tests(project_path: Path, test_command: str) -> Optional[bool]
     output_thread = Thread(target=stream_output, daemon=True)
     output_thread.start()
     try:
-        return_code = process.wait(timeout=120)
+        return_code = process.wait(timeout=timeout)
     except subprocess.TimeoutExpired:
         process.kill()
         process.wait()
         output_thread.join(timeout=1)
         console.print(
-            "[bold red]Tests timed out after 120 seconds and the process was terminated.[/bold red]"
+            f"[bold red]{title} timed out after {timeout} seconds and the process "
+            "was terminated.[/bold red]"
         )
         return False
 
     output_thread.join(timeout=1)
     return return_code == 0
+
+
+def _run_template_install(project_path: Path, install_command: str) -> Optional[bool]:
+    """Install generated-project dependencies, including a local Python venv."""
+    commands = [part.strip() for part in install_command.split("&&")]
+    project_python = _project_python(project_path)
+
+    for index, command in enumerate(commands):
+        command_parts = shlex.split(command)
+        if index == 0 and command_parts[:3] == ["python", "-m", "venv"]:
+            command_parts[0] = sys.executable
+        elif index > 0 and command_parts and command_parts[0] == "python":
+            command_parts[0] = str(project_python)
+
+        result = _run_process(
+            project_path,
+            command_parts,
+            command,
+            "[bold blue]Installing dependencies[/bold blue]",
+            timeout=300,
+        )
+        if result is not True:
+            return result
+
+    return True
+
+
+def _run_template_tests(project_path: Path, test_command: str) -> Optional[bool]:
+    """Run generated-project tests with its own interpreter where applicable."""
+    command_parts = shlex.split(test_command)
+    if command_parts and command_parts[0] == "python":
+        command_parts[0] = str(_project_python(project_path))
+
+    return _run_process(
+        project_path,
+        command_parts,
+        test_command,
+        "[bold blue]Running tests[/bold blue]",
+        timeout=120,
+    )
 
 
 @app.command()
@@ -187,16 +249,14 @@ def generate(
         table.add_row(filename)
     console.print(table)
 
-    preview_file = project_path / "main.py"
-    if not preview_file.exists():
-        preview_file = project_path / "src" / "main.jsx"
+    preview_file = project_path / selected_template.preview_file
 
     if preview_file.exists():
         console.print(
             Panel(
                 Syntax(
                     preview_file.read_text(encoding="utf-8"),
-                    "python" if preview_file.suffix == ".py" else "jsx",
+                    _preview_lexer(preview_file),
                     theme="monokai",
                     line_numbers=True,
                 ),
@@ -207,7 +267,12 @@ def generate(
 
     test_status = "Not run"
     if run_tests:
-        if selected_template.test_command is None:
+        install_result = _run_template_install(project_path, selected_template.install_command)
+        if install_result is False:
+            test_status = "Install failed"
+        elif install_result is None:
+            test_status = "Skipped (missing toolchain)"
+        elif selected_template.test_command is None:
             test_status = "Skipped (template has no test command)"
         else:
             result = _run_template_tests(project_path, selected_template.test_command)
@@ -237,7 +302,7 @@ def generate(
             border_style="green",
         )
     )
-    if run_tests and test_status == "Failed":
+    if run_tests and test_status in {"Install failed", "Failed"}:
         raise typer.Exit(code=1)
 
 

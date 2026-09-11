@@ -17,6 +17,7 @@ from forgecli.templates import TEMPLATES, Template
 console = Console()
 
 _LEADING_STOPWORDS = {"a", "an", "the", "build", "create", "make", "simple", "minimal"}
+_CONNECTIVE_STOPWORDS = {"for", "of", "with", "that", "to", "and", "in", "on"}
 
 
 def _normalize_slug_text(value: str) -> str:
@@ -34,6 +35,8 @@ def _slugify(description: str) -> str:
 
     while words and words[0] in _LEADING_STOPWORDS:
         words.pop(0)
+
+    words = [word for word in words if word not in _CONNECTIVE_STOPWORDS]
 
     words = words[:4]
     slug = "-".join(words)[:40].strip("-")

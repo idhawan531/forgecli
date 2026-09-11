@@ -6,7 +6,12 @@ from forgecli.templates import TEMPLATES
 
 def test_slugify_truncates_and_drops_leading_stopwords() -> None:
     description = "A minimal URL shortener API with FastAPI and in-memory storage"
-    assert _slugify(description) == "url-shortener-api-with"
+    assert _slugify(description) == "url-shortener-api-fastapi"
+
+
+def test_slugify_drops_connectives_mid_sentence() -> None:
+    assert _slugify("a react dashboard for tracking habits") == "react-dashboard-tracking-habits"
+    assert _slugify("a dashboard for tracking habits") == "dashboard-tracking-habits"
 
 
 def test_slugify_handles_unicode_and_punctuation() -> None:
@@ -15,6 +20,10 @@ def test_slugify_handles_unicode_and_punctuation() -> None:
 
 def test_slugify_all_stopwords_defaults() -> None:
     assert _slugify("a simple minimal build") == "forgecli-project"
+
+
+def test_slugify_all_connectives_defaults() -> None:
+    assert _slugify("for of with that to and in on") == "forgecli-project"
 
 
 def test_slugify_empty_defaults() -> None:
