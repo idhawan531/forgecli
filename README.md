@@ -1,5 +1,7 @@
 # ForgeCLI
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Built with GitHub Copilot](https://img.shields.io/badge/Built%20with-GitHub%20Copilot-8A2BE2?logo=githubcopilot&logoColor=white)](https://github.com/features/copilot)
+
 One sentence in, a running project out — with every Copilot prompt logged.
 
 ![demo](docs/demo.png)
@@ -34,11 +36,7 @@ pip install git+https://github.com/idhawan531/forgecli
 
 </details>
 
-| Command | Template |
-|---|---|
-| `forgecli generate "a rest api for short links"` | `fastapi_api` |
-| `forgecli generate "a react dashboard for tracking habits"` | `vite_react` |
-| `forgecli generate "a terminal pomodoro timer"` | `rich_tui` |
+`forgecli generate "a rest api for short links"` auto-selects the `fastapi_api` template — see [Usage](#usage) below for every command and flag.
 
 ## Usage
 
@@ -131,6 +129,59 @@ forgecli demo
 | `fastapi_api` | FastAPI app, pytest test, Python CI workflow | `uvicorn main:app --reload` |
 | `vite_react` | Vite + React app, dark-mode starter styling, Node CI workflow | `npm install && npm run dev` |
 | `rich_tui` | Typer + Rich terminal app with starter test and Python CI workflow | `python main.py` |
+
+## What a generated project looks like
+
+These are the real file trees produced by `forgecli demo`, not hand-written examples.
+Every template ships a `.github/workflows/ci.yml`, so CI runs from the moment the
+project is generated.
+
+### `fastapi_api`
+
+```text
+fastapi-api/
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+├── .gitignore
+├── README.md
+├── main.py
+├── requirements.txt
+└── test_main.py
+```
+
+### `vite_react`
+
+```text
+vite-react/
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+├── src/
+│   ├── App.css
+│   ├── App.jsx
+│   ├── App.test.jsx
+│   └── main.jsx
+├── .gitignore
+├── README.md
+├── index.html
+├── package.json
+└── vite.config.js
+```
+
+### `rich_tui`
+
+```text
+rich-tui/
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+├── .gitignore
+├── README.md
+├── main.py
+├── requirements.txt
+└── test_main.py
+```
 
 ## Transparency
 
