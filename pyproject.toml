@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "forgecli"
+version = "0.1.0"
+description = "One sentence in, a running project out — with every Copilot prompt logged."
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "typer",
+    "rich",
+    "jinja2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "ruff",
+    "fastapi",
+    "httpx",
+]
+
+[project.scripts]
+forgecli = "forgecli.cli:app"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+ignore = ["UP045"]
