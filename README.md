@@ -2,7 +2,7 @@
 
 One sentence in, a running project out — with every Copilot prompt logged.
 
-![demo](docs/demo.gif)
+![demo](docs/demo.png)
 
 ## What it does
 
@@ -14,8 +14,25 @@ One sentence in, a running project out — with every Copilot prompt logged.
 ## Quickstart
 
 ```bash
-pip install -e .
+pipx install git+https://github.com/idhawan531/forgecli
+forgecli generate "a react dashboard for tracking daily habits"
 ```
+
+No API keys, no config, no network calls — generation is deterministic and works offline.
+
+<details>
+<summary>Other install methods</summary>
+
+```bash
+# development, from a clone
+git clone https://github.com/idhawan531/forgecli && cd forgecli
+pip install -e ".[dev]"
+
+# into an existing environment
+pip install git+https://github.com/idhawan531/forgecli
+```
+
+</details>
 
 | Command | Template |
 |---|---|
