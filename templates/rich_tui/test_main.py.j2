@@ -1,0 +1,8 @@
+from main import build_summary
+
+
+def test_build_summary_contains_description() -> None:
+    description = "{{ description }}"
+    values = dict(build_summary(description))
+    assert values["Description"] == description
+    assert values["Template"] == "rich_tui"

@@ -1,0 +1,14 @@
+"""A basic FastAPI application scaffolded by forgecli."""
+
+from fastapi import FastAPI
+
+app = FastAPI(
+    title="{{ project_name }}",
+    description="{{ description }}",
+)
+
+
+@app.get("/")
+def read_root() -> dict[str, str]:
+    """Return a simple welcome message."""
+    return {"message": "{{ description }}"}
