@@ -22,8 +22,7 @@ class Template:
     next_prompts: list[str]
 
 
-_REPO_ROOT = Path(__file__).resolve().parents[2]
-_TEMPLATE_ROOT = _REPO_ROOT / "templates"
+_TEMPLATE_ROOT = Path(__file__).parent / "templates_data"
 
 TEMPLATES: dict[str, Template] = {
     "fastapi_api": Template(

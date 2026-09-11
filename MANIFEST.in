@@ -1,1 +1,1 @@
-recursive-include templates *.j2
+recursive-include src/forgecli/templates_data *.j2

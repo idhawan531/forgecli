@@ -7,6 +7,7 @@ import subprocess
 import sys
 import time
 from pathlib import Path
+from threading import Thread
 from typing import Optional
 
 import typer
@@ -63,10 +64,26 @@ def _run_template_tests(project_path: Path, test_command: str) -> Optional[bool]
 
     assert process.stdout is not None
     console.print(Panel.fit(test_command, title="[bold blue]Running tests[/bold blue]", border_style="blue"))
-    for line in process.stdout:
-        console.print(line.rstrip())
 
-    return process.wait() == 0
+    def stream_output() -> None:
+        for line in process.stdout:
+            console.print(line.rstrip())
+
+    output_thread = Thread(target=stream_output, daemon=True)
+    output_thread.start()
+    try:
+        return_code = process.wait(timeout=120)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.wait()
+        output_thread.join(timeout=1)
+        console.print(
+            "[bold red]Tests timed out after 120 seconds and the process was terminated.[/bold red]"
+        )
+        return False
+
+    output_thread.join(timeout=1)
+    return return_code == 0
 
 
 @app.command()
